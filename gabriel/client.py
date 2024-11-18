@@ -10,9 +10,6 @@ def client_program(server_ip, port):
     client_socket.connect((server_ip, port))
     print("Connected to server")
 
-    data = b""
-    payload_size = struct.calcsize("L")
-
     try:
         while True:
             # Receive the length of the compressed data first
