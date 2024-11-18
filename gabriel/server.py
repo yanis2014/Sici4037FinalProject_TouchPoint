@@ -1,8 +1,7 @@
-import socket
+import pickle
 import pyautogui
-import numpy as np
-import zlib
-from PIL import Image
+import socket
+import struct
 
 def server_program():
     host = '0.0.0.0'  # Listen on all available interfaces

@@ -1,13 +1,13 @@
-import socket
-import pyautogui
-import zlib
 import cv2
-import struct
 import numpy as np
+from PIL import Image
+import socket
+import struct
+import zlib
 
 def client_program(server_ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
+    client_socket.connect((server_ip, port))
     print("Connected to server")
 
     data = b""
@@ -16,12 +16,12 @@ def client_program(server_ip, port):
     try:
         while True:
             # Receive the length of the compressed data first
-            data_length = int.from_bytes(conn.recv(4), 'big')
+            data_length = int.from_bytes(client_socket.recv(4), 'big')
             compressed_data = b""
 
             # Receive the compressed data in chunks
             while len(compressed_data) < data_length:
-                packet = conn.recv(4096)
+                packet = client_socket.recv(4096)
                 if not packet:
                     break
                 compressed_data += packet
@@ -39,7 +39,7 @@ def client_program(server_ip, port):
     except Exception as e:
         print("Connection closed or error:", e)
     finally:
-        conn.close()
+        client_socket.close()
         cv2.destroyAllWindows()
 
 """     try:
