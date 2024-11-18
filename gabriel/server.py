@@ -1,7 +1,6 @@
-import pickle
 import pyautogui
 import socket
-import struct
+import zlib
 
 def server_program():
     host = '0.0.0.0'  # Listen on all available interfaces
@@ -19,16 +18,20 @@ def server_program():
         while True:
             # Capture the screen
             screenshot = pyautogui.screenshot()
-            screen_data = screenshot.tobytes()
+            screenshot = screenshot.resize((800, 600))  # Resize for faster transfer
 
-            # Serialize the screen data
-            serialized_data = pickle.dumps(screen_data)
-            message_size = struct.pack("L", len(serialized_data))
+            # Convert screenshot to bytes
+            img_data = screenshot.tobytes()
 
-            # Send the data
-            conn.sendall(message_size + serialized_data)
+            # Compress the image data
+            compressed_data = zlib.compress(img_data)
+
+            # Send the length of the compressed data followed by the data itself
+            data_length = len(compressed_data)
+            conn.sendall(data_length.to_bytes(4, 'big'))  # Send length first
+            conn.sendall(compressed_data)
     except Exception as e:
-        print(f"Error: {e}")
+        print("Connection closed or error:", e)
     finally:
         conn.close()
 
