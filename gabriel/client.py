@@ -1,6 +1,9 @@
 import socket
 import pyautogui
 import zlib
+import cv2
+import struct
+import numpy as np
 
 def client_program(server_ip, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,37 +15,31 @@ def client_program(server_ip, port):
 
     try:
         while True:
-            # Retrieve message size
-            while len(data) < payload_size:
-                packet = client_socket.recv(4096)
+            # Receive the length of the compressed data first
+            data_length = int.from_bytes(conn.recv(4), 'big')
+            compressed_data = b""
+
+            # Receive the compressed data in chunks
+            while len(compressed_data) < data_length:
+                packet = conn.recv(4096)
                 if not packet:
                     break
-                data += packet
-            print("Data packet received")
-            packed_msg_size = data[:payload_size]
-            data = data[payload_size:]
-            msg_size = struct.unpack("L", packed_msg_size)[0]
+                compressed_data += packet
 
-            # Retrieve all data based on message size
-            while len(data) < msg_size:
-                data += client_socket.recv(4096)
+            # Decompress the received data
+            img_data = zlib.decompress(compressed_data)
+            image = Image.frombytes('RGB', (800, 600), img_data)
+            opencv_image = np.array(image)
+            opencv_image = cv2.cvtColor(opencv_image, cv2.COLOR_RGB2BGR)
 
-            serialized_data = data[:msg_size]
-            data = data[msg_size:]
-
-            # Deserialize the data and display it
-            screen_data = pickle.loads(serialized_data)
-            screen_array = np.frombuffer(screen_data, dtype=np.uint8)
-            screen = cv2.imdecode(screen_array, cv2.IMREAD_COLOR)
-
-            # Show the screen using OpenCV
-            cv2.imshow("Remote Desktop", screen)
-            if cv2.waitKey(1) & 0xFF == ord("q"):
+            # Display the screen image
+            cv2.imshow("Client Screen", opencv_image)
+            if cv2.waitKey(1) == ord("q"):
                 break
     except Exception as e:
-        print(f"Error: {e}")
+        print("Connection closed or error:", e)
     finally:
-        client_socket.close()
+        conn.close()
         cv2.destroyAllWindows()
 
 """     try:
