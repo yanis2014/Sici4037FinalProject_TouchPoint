@@ -18,6 +18,24 @@ def server_program():
 
     try:
         while True:
+            # Capture the screen
+            screenshot = pyautogui.screenshot()
+            screen_data = screenshot.tobytes()
+
+            # Serialize the screen data
+            serialized_data = pickle.dumps(screen_data)
+            message_size = struct.pack("L", len(serialized_data))
+
+            # Send the data
+            conn.sendall(message_size + serialized_data)
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        conn.close()
+
+
+    """ try:
+        while True:
             # Receive the length of the compressed data first
             data_length = int.from_bytes(conn.recv(4), 'big')
             compressed_data = b""
@@ -43,7 +61,7 @@ def server_program():
         print("Connection closed or error:", e)
     finally:
         conn.close()
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows() """
 
 if __name__ == "__main__":
     server_program()

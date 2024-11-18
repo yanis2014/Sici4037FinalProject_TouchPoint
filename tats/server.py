@@ -28,7 +28,6 @@ def start_server(host='0.0.0.0', port=9999):
         print(f"Error: {e}")
     finally:
         client_socket.close()
-        client_socket.close()
 
 if __name__ == "__main__":
     start_server()
