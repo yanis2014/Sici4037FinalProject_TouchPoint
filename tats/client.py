@@ -15,7 +15,11 @@ def start_client(server_ip, port):
         while True:
             # Retrieve message size
             while len(data) < payload_size:
-                data += client_socket.recv(4096)
+                packet = client_socket.recv(4096)
+                if not packet:
+                    break
+                data += packet
+            print("Data packet received")
             packed_msg_size = data[:payload_size]
             data = data[payload_size:]
             msg_size = struct.unpack("L", packed_msg_size)[0]
@@ -43,4 +47,4 @@ def start_client(server_ip, port):
         cv2.destroyAllWindows()
         
 if __name__ == "__main__":
-    start_client("127.0.0.1", 9999)
+    start_client("10.0.43.89", 9999)
