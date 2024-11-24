@@ -3,9 +3,8 @@ import cv2
 import numpy as np
 import zlib
 from PIL import Image
-def server_program():
+def server_program(port=65432):
     host = '0.0.0.0'  # Listen on all available interfaces
-    port = 65432
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))
     server_socket.listen(1)

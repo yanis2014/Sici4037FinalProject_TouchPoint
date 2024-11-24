@@ -3,9 +3,8 @@
 import socket
 import pyautogui
 import zlib
-def client_program():
-    host = '10.0.0.136'  # Replace with server's IP address
-    port = 65432
+def client_program(host='10.0.0.136', port=65432):
+
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
     print("Connected to server")
