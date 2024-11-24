@@ -1,8 +1,10 @@
+# python3 -m pip install package_name
+
 import socket
 import pyautogui
 import zlib
 def client_program():
-    host = '10.0.43.89'  # Replace with server's IP address
+    host = '10.0.0.136'  # Replace with server's IP address
     port = 65432
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
