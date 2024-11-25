@@ -1,8 +1,8 @@
-import socket
-import pickle
-import pyautogui
 import cv2
 import numpy as np
+import pickle
+import pyautogui
+import socket
 
 def capture_screen():
     screenshot = pyautogui.screenshot()
@@ -10,9 +10,13 @@ def capture_screen():
     return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 def apply_input(data):
+    server_screen_width, server_screen_height = pyautogui.size()
     input_type, details = data
     if input_type == "mouse_move":
-        pyautogui.moveTo(details["x"], details["y"])
+        # Scale normalized coordinates to server's screen size
+        scaled_x = int(details["x"] * server_screen_width)
+        scaled_y = int(details["y"] * server_screen_height)
+        pyautogui.moveTo(scaled_x, scaled_y)
     elif input_type == "mouse_click":
         pyautogui.click(button=details["button"])
     elif input_type == "key_press":

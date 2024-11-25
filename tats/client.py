@@ -1,7 +1,8 @@
-import socket
-import pickle
 import cv2
+import pickle
+import pyautogui
 from pynput import mouse, keyboard
+import socket
 
 def receive_screen(client_socket):
     data_len = int.from_bytes(client_socket.recv(4), 'big')
@@ -13,13 +14,18 @@ def receive_screen(client_socket):
         data += packet
     return pickle.loads(data)
 
+def normalize_coordinates(x, y):
+    client_screen_width, client_screen_height = pyautogui.size()
+    return x / client_screen_width, y / client_screen_height
+
 def send_input(client_socket, input_event):
     data = pickle.dumps(input_event)
     client_socket.sendall(len(data).to_bytes(4, 'big') + data)
 
 def on_mouse_move(x, y):
-    input_event = ("mouse_move", {"x": x, "y": y})
-    send_input(client_socket, input_event)
+    norm_x, norm_y = normalize_coordinates(x, y)
+    input_event = ("mouse_move", {"x": norm_x, "y": norm_y})
+    send_input(input_event)
 
 def on_click(x, y, button, pressed):
     if pressed:
@@ -36,10 +42,12 @@ def on_key_press(key):
 def main():
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = 'server_ip_address'
+    host = '10.0.0.136'
     port = 9999
     client_socket.connect((host, port))
     print("Connected to server")
+    
+    cv2.namedWindow("TouchPoint", cv2.WINDOW_NORMAL)
 
     # Start listeners for mouse and keyboard
     mouse_listener = mouse.Listener(on_move=on_mouse_move, on_click=on_click)
@@ -49,8 +57,15 @@ def main():
 
     try:
         while True:
+            print("Frame")
             frame = receive_screen(client_socket)
-            cv2.imshow("Remote Desktop", frame)
+            if frame is None:
+                break
+
+            cv2.resizeWindow("TouchPoint", 1024, 768)
+
+            print("Window")
+            cv2.imshow("TouchPoint", frame)
             if cv2.waitKey(1) == ord('q'):  # Quit with 'q'
                 break
     except Exception as e:
