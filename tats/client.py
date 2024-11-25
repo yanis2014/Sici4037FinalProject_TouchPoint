@@ -6,6 +6,7 @@ import socket
 
 def receive_screen(client_socket):
     data_len = int.from_bytes(client_socket.recv(4), 'big')
+    print("Data len: ", data_len)
     data = b''
     while len(data) < data_len:
         packet = client_socket.recv(data_len - len(data))
@@ -26,7 +27,7 @@ def send_input(client_socket, input_event):
 def on_mouse_move(x, y):
     norm_x, norm_y = normalize_coordinates(x, y)
     input_event = ("mouse_move", {"x": norm_x, "y": norm_y})
-    send_input(input_event)
+    send_input(client_socket, input_event)
 
 def on_click(x, y, button, pressed):
     if pressed:
@@ -68,7 +69,7 @@ def main():
 
             print("Window")
             cv2.imshow("TouchPoint", frame)
-            if cv2.waitKey(1) == ord('q'):  # Quit with 'q'
+            if cv2.waitKey(0) == ord('q'):  # Quit with 'q'
                 break
     except Exception as e:
         print("Error:", e)
