@@ -44,8 +44,9 @@ def on_key_press(key):
 def main():
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # host = '10.0.0.136'
-    host = '10.0.0.87'
+    # host = '10.0.0.136' # Mine
+    # host = '10.0.0.87' # Carlos
+    host = '10.0.43.96' # A210-A11002
     port = 9999
     client_socket.connect((host, port))
     print("Connected to server")
