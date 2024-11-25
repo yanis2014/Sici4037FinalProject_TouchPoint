@@ -38,6 +38,7 @@ def main():
             # Send screen data
             frame = capture_screen()
             frame_data = pickle.dumps(frame)
+            print("Length data: ", len(frame_data))
             client_socket.sendall(len(frame_data).to_bytes(4, 'big') + frame_data)
             
             # Receive input data

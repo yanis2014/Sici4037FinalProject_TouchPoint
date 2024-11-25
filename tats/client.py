@@ -20,6 +20,7 @@ def normalize_coordinates(x, y):
 
 def send_input(client_socket, input_event):
     data = pickle.dumps(input_event)
+    print(f"Data length: {len(data)}")
     client_socket.sendall(len(data).to_bytes(4, 'big') + data)
 
 def on_mouse_move(x, y):
@@ -42,7 +43,8 @@ def on_key_press(key):
 def main():
     global client_socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '10.0.0.136'
+    # host = '10.0.0.136'
+    host = '10.0.0.87'
     port = 9999
     client_socket.connect((host, port))
     print("Connected to server")
