@@ -18,6 +18,7 @@ def is_valid_port(port):
         return (0 <= elem <= 65535)
     except:
         return False
+    
 
 def clear_err_labels():
     err_label1.configure(text="")
@@ -44,20 +45,6 @@ def toggle_inputs():
     label1.configure(state=state1)
     label2.configure(state=state1)
     label3.configure(state=state2)
-
-# Centers the given window on the screen
-def center_window(window, width, height):
-
-    # Get the screen dimensions
-    screen_width = window.winfo_screenwidth()
-    screen_height = window.winfo_screenheight()
-
-    # Calculate the position to center the window
-    x_position = (screen_width - width) // 2
-    y_position = (screen_height - height) // 2
-
-    # Set window size and position
-    window.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
 
 # Triggers connection based on selected option
 def click_connect():
@@ -106,23 +93,21 @@ def click_connect():
     header_label = tk.Label(main_frame, text=option_text, font=("Calibri", 16, "bold"))
     header_label.pack(anchor="w", pady=10, padx=10)
 
+    
+    # Create status label
+    status_label = tk.Label(main_frame, text="Status: Initializing...")
+    status_label.pack(anchor="w", padx=10, pady=20)
+
+    def update_status(message):
+        status_label.configure(text=f"Status: {message}")
+
     if option == "Option 1":
-
-        # Create status label
-        status_label = tk.Label(main_frame, text=f"Status: Connecting to {op1_ip} on port {op2_port}...")
-        status_label.pack(anchor="w", padx=10, pady=20)
-
-        # Simulate status update after a short delay (e.g., successful connection)
-        status_label.after(5000, lambda: status_label.config(text="Connection Successful!"))
-
+        update_status(f"Status: Connecting to {op1_ip} on port {op1_port}...")
+        # main_frame.after(100, lambda: test_client.start_client(op1_ip, int(op1_port), status_callback=update_status))
     else:
-        # Create status label
-        status_label = tk.Label(main_frame, text=f"Status: {op2_ip} is listening on port {op2_port}...")
-        status_label.pack(anchor="w", padx=10, pady=20)
-
-        # Simulate status update after a short delay (e.g., successful connection)
-        status_label.after(5000, lambda: status_label.config(text="Connection Successful!"))
-
+        update_status(f"Status: {op2_ip} is listening on port {op2_port}...")
+        # main_frame.after(100, lambda: test_server.start_server(op2_ip, int(op2_port), status_callback=update_status))
+        
     # Create Cancel button
     end_button = tk.Button(main_frame, text="Cancel", bg="red", fg="white", command=return_to_main)
     end_button.pack(anchor="w", pady=20, padx=10)
@@ -157,8 +142,7 @@ if __name__ == "__main__":
     window.title("TouchPoint - Remote Desktop Connection")
 
     # Set window size and position
-    window_width, window_height = 480, 520
-    center_window(window, window_width, window_height)
+    window.resizable(True,True)
 
     main_frame = tk.Frame(window)
     main_frame.pack(fill="both", expand=True)
@@ -183,10 +167,6 @@ if __name__ == "__main__":
     ip_frame = tk.Frame(main_frame)
     port1_frame = tk.Frame(main_frame)
     port2_frame = tk.Frame(main_frame)
-
-    # label1 = tk.Label(main_frame, text="IP Address:")
-    # entry1 = tk.Entry(main_frame)
-    # err_label1 = tk.Label(main_frame, text="", fg="red")
 
     # Create input and error labels
     entry1 = tk.Entry(ip_frame)
