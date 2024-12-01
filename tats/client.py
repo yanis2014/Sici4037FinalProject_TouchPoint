@@ -1,84 +1,83 @@
 import cv2
-import pickle
-import pyautogui
-from pynput import mouse, keyboard
+import numpy as np
 import socket
+from PIL import Image
+import zlib
 
-def receive_screen(client_socket):
-    data_len = int.from_bytes(client_socket.recv(4), 'big')
-    print("Data len: ", data_len)
-    data = b''
-    while len(data) < data_len:
-        packet = client_socket.recv(data_len - len(data))
+def recv_screen(cs):
+    # Receive the length of the compressed data first (4 bytes for the size)
+    data_length_bytes = cs.recv(4)
+    if not data_length_bytes:
+        return None  # No data received, return None to handle it gracefully
+
+    # Convert bytes to an integer (big-endian)
+    data_length = int.from_bytes(data_length_bytes, 'big')
+
+    # Initialize buffer for receiving data
+    compressed_data = b""
+
+    # Receive the complete data based on its length
+    while len(compressed_data) < data_length:
+        packet = cs.recv(min(4096, data_length - len(compressed_data)))
         if not packet:
-            break
-        data += packet
-    return pickle.loads(data)
+            raise ValueError("Connection lost or incomplete data received")
+        compressed_data += packet
 
-def normalize_coordinates(x, y):
-    client_screen_width, client_screen_height = pyautogui.size()
-    return x / client_screen_width, y / client_screen_height
-
-def send_input(client_socket, input_event):
-    data = pickle.dumps(input_event)
-    print(f"Data length: {len(data)}")
-    client_socket.sendall(len(data).to_bytes(4, 'big') + data)
-
-def on_mouse_move(x, y):
-    norm_x, norm_y = normalize_coordinates(x, y)
-    input_event = ("mouse_move", {"x": norm_x, "y": norm_y})
-    send_input(client_socket, input_event)
-
-def on_click(x, y, button, pressed):
-    if pressed:
-        input_event = ("mouse_click", {"x": x, "y": y, "button": button.name})
-        send_input(client_socket, input_event)
-
-def on_key_press(key):
+    # Decompress the received data
     try:
-        input_event = ("key_press", {"key": key.char or key.name})
-        send_input(client_socket, input_event)
-    except AttributeError:
-        pass
+        img_data = zlib.decompress(compressed_data)
+    except zlib.error as e:
+        raise ValueError(f"Decompression failed: {e}")
 
-def main():
-    global client_socket
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # host = '10.0.0.136' # Mine
-    # host = '10.0.0.87' # Carlos
-    host = '10.0.43.96' # A210-A11002
-    port = 9999
-    client_socket.connect((host, port))
-    print("Connected to server")
-    
-    cv2.namedWindow("TouchPoint", cv2.WINDOW_NORMAL)
-
-    # Start listeners for mouse and keyboard
-    mouse_listener = mouse.Listener(on_move=on_mouse_move, on_click=on_click)
-    keyboard_listener = keyboard.Listener(on_press=on_key_press)
-    mouse_listener.start()
-    keyboard_listener.start()
-
+    # Convert to an image
     try:
-        while True:
-            print("Frame")
-            frame = receive_screen(client_socket)
-            if frame is None:
-                break
-
-            cv2.resizeWindow("TouchPoint", 1024, 768)
-
-            print("Window")
-            cv2.imshow("TouchPoint", frame)
-            if cv2.waitKey(0) == ord('q'):  # Quit with 'q'
-                break
+        image = Image.frombytes('RGB', (1200, 675), img_data)
+        opencv_image = np.array(image)
+        return cv2.cvtColor(opencv_image, cv2.COLOR_RGB2BGR)
     except Exception as e:
-        print("Error:", e)
+        raise ValueError(f"Image reconstruction failed: {e}")
+
+
+def client_program(host='10.0.43.106', port=9999):
+    # Create a TCP/IP Socket
+    cs = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        # Connect to the server
+        cs.connect((host, port))
+
+        while True:
+            try:
+                opencv_image = recv_screen(cs)
+                if opencv_image is None:
+                    print("No image received. Closing connection.")
+                    break
+
+                # Display the received screen
+                cv2.imshow("Client Screen", opencv_image)
+
+                # cv2.setMouseCallback("Client Screen", click_event)
+            
+                # Exit if 'q' is pressed
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+
+            except Exception as e:
+                print(f"Error receiving or processing image: {e}")
+                break
+
     finally:
-        mouse_listener.stop()
-        keyboard_listener.stop()
-        client_socket.close()
+        # Close the client socket and clean up
+        cs.close()
         cv2.destroyAllWindows()
 
+
 if __name__ == "__main__":
-    main()
+    client_program(host='192.168.0.9')
+
+""" def click_event(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        print(f"Mouse clicked at: ({x}, {y})")
+        cv2.circle(img, (x, y), 5, (255, 0, 0), -1)
+        cv2.imshow("Image", img) """

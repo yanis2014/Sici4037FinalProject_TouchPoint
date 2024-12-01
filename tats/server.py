@@ -1,56 +1,57 @@
-import cv2
-import numpy as np
-import pickle
-import pyautogui
 import socket
+import pyautogui
+import zlib
 
-def capture_screen():
+
+def send_screen(client):
+    # Capture the screen
     screenshot = pyautogui.screenshot()
-    frame = np.array(screenshot)
-    return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    screenshot = screenshot.resize((1200, 675))
 
-def apply_input(data):
-    server_screen_width, server_screen_height = pyautogui.size()
-    input_type, details = data
-    if input_type == "mouse_move":
-        # Scale normalized coordinates to server's screen size
-        scaled_x = int(details["x"] * server_screen_width)
-        scaled_y = int(details["y"] * server_screen_height)
-        pyautogui.moveTo(scaled_x, scaled_y)
-    elif input_type == "mouse_click":
-        pyautogui.click(button=details["button"])
-    elif input_type == "key_press":
-        pyautogui.press(details["key"])
+    # Convert screenshot to bytes
+    screen_data = screenshot.tobytes()
 
-def main():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '0.0.0.0'
-    port = 9999
-    server_socket.bind((host, port))
-    server_socket.listen(5)
-    print("Server listening on port", port)
+    # Compress the image data
+    compressed_data = zlib.compress(screen_data)
 
-    client_socket, address = server_socket.accept()
-    print("Connection from:", address)
+    # Send the length of the compressed data
+    data_length = len(compressed_data)
+    client.sendall(data_length.to_bytes(4,'big'))
+    client.sendall(compressed_data)
+
+
+
+# Runs the server program
+def server_program(host='0.0.0.0', port=9999):
+    ############### Testing Vars
+    data = "x"
+
+    # Creates a TCP/IP socket
+    ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Bind the to the address and port
+    ss.bind((host, port))
+
+    # Enable the server to accept connection (max 1 queued connections)
+    ss.listen(1)
+
+    # Notify server has started
+    print(f"Server started at {host} Port: {port}.")
 
     try:
+        # Wait for a connection
+        conn, addr = ss.accept()
+        print(f"Connection from {addr} has been established.")
+
+        # Receive data
         while True:
-            # Send screen data
-            frame = capture_screen()
-            frame_data = pickle.dumps(frame)
-            print("Length data: ", len(frame_data))
-            client_socket.sendall(len(frame_data).to_bytes(4, 'big') + frame_data)
-            
-            # Receive input data
-            input_len = int.from_bytes(client_socket.recv(4), 'big')
-            input_data = client_socket.recv(input_len)
-            input_event = pickle.loads(input_data)
-            apply_input(input_event)
-    except Exception as e:
-        print("Error:", e)
+            send_screen(conn)
+
+    except KeyboardInterrupt:
+        print("Server is shutting down.")
+
     finally:
-        client_socket.close()
-        server_socket.close()
+        ss.close()
 
 if __name__ == "__main__":
-    main()
+    server_program()
