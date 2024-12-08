@@ -2,7 +2,6 @@ import socket
 import pyautogui
 import zlib
 
-
 def send_screen(client):
     # Capture the screen
     screenshot = pyautogui.screenshot()
@@ -19,12 +18,8 @@ def send_screen(client):
     client.sendall(data_length.to_bytes(4,'big'))
     client.sendall(compressed_data)
 
-
-
 # Runs the server program
-def server_program(host='0.0.0.0', port=9999):
-    ############### Testing Vars
-    data = "x"
+def host_program(host='0.0.0.0', port=9999):
 
     # Creates a TCP/IP socket
     ss = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,6 +47,3 @@ def server_program(host='0.0.0.0', port=9999):
 
     finally:
         ss.close()
-
-if __name__ == "__main__":
-    server_program()

@@ -72,10 +72,6 @@ def client_program(host='10.0.43.106', port=9999):
         cs.close()
         cv2.destroyAllWindows()
 
-
-if __name__ == "__main__":
-    client_program(host='192.168.0.9')
-
 """ def click_event(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
         print(f"Mouse clicked at: ({x}, {y})")
