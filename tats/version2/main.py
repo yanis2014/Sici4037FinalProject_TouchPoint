@@ -157,6 +157,7 @@ if __name__ == "__main__":
     # Set window size and position
     window.resizable(True,True)
 
+    # Create a frame for the main window
     main_frame = tk.Frame(window)
     main_frame.pack(fill="both", expand=True)
 
