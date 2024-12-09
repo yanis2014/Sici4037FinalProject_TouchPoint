@@ -108,6 +108,10 @@ def click_connect():
         # Open listening window
         server_connect_window(op2_port)
 
+        # Refresh window
+        window.update_idletasks()
+        window.update()
+
         # Run server program
         server.server_program(port=int(op2_port), window=window)
 
@@ -122,7 +126,7 @@ def server_connect_window(port):
     # Place widgets
     server_connect_header.pack(anchor="w", padx=10, pady=30)
     server_connect_status.pack(anchor="w", padx=10)
-    cancel_button.pack(anchor="w", padx=10)
+    cancel_button.pack(anchor="w", padx=10, pady=35)
 
 def main_window():
     # Clear the current frame
