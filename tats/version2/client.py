@@ -3,6 +3,8 @@ import socket
 from PIL import Image, ImageTk
 import zlib
 
+from threading import RLock
+
 # CONFIG
 x_max = 1200    # pixels in x-axis
 y_max = 675     # pixels in y-axis
@@ -41,6 +43,79 @@ def recv_screen(cs):
     except Exception as e:
         raise ValueError(f"Image reconstruction failed: {e}")
 
+SOCK_LOCK = RLock()
+
+def send(msg):
+    msg += " "
+    with SOCK_LOCK:
+        print(msg)
+        payload = msg.encode('utf-8')
+        ui_sock.sendall(payload)
+
+# ----- KEYBOARD FUNCTIONS ----- #
+
+# Dictionary to track which keys are currently pressed
+keys_held = {}
+
+# Function to handle key press
+def key_pressed(event):
+    print("key pressed")
+    if event.keysym not in keys_held:  # Avoid duplicate entries
+        keys_held[event.keysym] = True
+        msg = f"KD {event.keysym}"
+        send(msg)
+
+# Function to handle key release
+def key_released(event):
+    print("key released")
+    if event.keysym in keys_held:
+        del keys_held[event.keysym]
+        msg = f"KU {event.keysym}"
+        send(msg)
+
+# ------ MOUSE FUNCTIONS ------ #
+
+# def left_click_handler(event):
+#     x_rel = event.x/x_max
+#     y_rel = event.y/y_max
+#     msg = f"MDL {x_rel} {y_rel}"
+#     send(msg)
+
+def mouse_press(event):
+    x_rel = event.x/x_max
+    y_rel = event.y/y_max
+    command = "MD"
+
+    if event.num == 1:
+        command += "L"
+    elif event.num == 3:
+        command += "R"
+    else:
+        return 0
+
+    msg = f"{command} {x_rel} {y_rel}"
+    send(msg)
+
+def mouse_release(event):
+    x_rel = event.x/x_max
+    y_rel = event.y/y_max
+    command = "MU"
+
+    if event.num == 1:
+        command += "L"
+    elif event.num == 3:
+        command += "R"
+    else:
+        return 0
+
+    msg = f"{command} {x_rel} {y_rel}"
+    send(msg)
+
+
+
+
+    
+
 # return absolute coordinates from relative
 def abs_coord(x_percent, y_percent):
     return int(x_percent*x_max), int(y_percent*y_max)
@@ -49,13 +124,8 @@ def abs_coord(x_percent, y_percent):
 def rel_coord(x_abs, y_abs):
     return x_abs/x_max, y_abs/y_max
 
-def left_click_handler(event):
-    x_rel = event.x/x_max
-    y_rel = event.y/y_max
-    msg = f"X:{x_rel} Y:{y_rel} E:{event.num}"
-    print(msg)
-    payload = msg.encode('utf-8')
-    ui_sock.sendall(payload)
+
+# ----- MAIN ----- #
 
 def client_program(hostserver=None, port=9999):
 
@@ -93,7 +163,12 @@ def client_program(hostserver=None, port=9999):
         label.pack()
 
         # bind mouseclicks to image
-        label.bind("<Button-1>", left_click_handler)
+        label.bind("<ButtonPress>", mouse_press)
+        label.bind("<ButtonRelease>", mouse_release)
+
+        # Bind key press and key release events
+        window.bind("<KeyPress>", key_pressed)
+        window.bind("<KeyRelease>", key_released)
 
         while True:
             try:

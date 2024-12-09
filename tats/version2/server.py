@@ -1,10 +1,15 @@
+# built-in imports
 import socket
-import pyautogui
-import zlib
-
 from threading import Thread, Event
 import time
 import sys
+
+# third-party imports
+import pyautogui
+import zlib
+
+# local imports
+from key_translation import keysym_to_pyautogui as keys
 
 
 # CONFIG
@@ -45,17 +50,63 @@ def read_input(client):
     inp = client.recv(1024)     # read from the socket
     inp = inp.decode('utf-8')   # decode the string
     print(inp)
-    
-    # parse message
-    inp = inp.split(" ")
-    x_rel = float(inp[0].split(":")[1]) # relative x coordinate
-    y_rel = float(inp[1].split(":")[1]) # relative y coordinate
-    event = float(inp[0].split(":")[1]) # event type
+    msg = inp.split()
 
+    while len(msg) > 0:
+        command = msg.pop(0)
+        if command[0] == "M":     # Left Click
+            x = msg.pop(0)
+            y = msg.pop(0)
+            
+            if command == "MDL":
+                left_press(x, y)
+            elif command == "MUL":
+                left_release(x, y)
+            elif command == "MDR":
+                right_press(x, y)
+            elif command == "MUR":
+                right_release(x, y)
+
+        elif command == "KD":    # Key press
+            k = msg.pop(0)
+            key_press(k)
+
+        elif command == "KU":    # Key release
+            k = msg.pop(0)
+            key_release(k)
+
+
+def key_press(key):
+    if key in keys:
+        pyautogui.keyDown(keys[key])
+
+def key_release(key):
+    if key in keys:
+        pyautogui.keyUp(keys[key])
+
+def left_press(x_rel, y_rel):
     # convert coordinates
-    x_abs, y_abs = abs_coord(x_rel, y_rel)
+    x_abs, y_abs = abs_coord(float(x_rel), float(y_rel))
     pyautogui.moveTo(x_abs, y_abs)
-    pyautogui.click(x_abs, y_abs, button="left")
+    pyautogui.mouseDown(x=x_abs, y=y_abs, button="left")
+
+def left_release(x_rel, y_rel):
+    # convert coordinates
+    x_abs, y_abs = abs_coord(float(x_rel), float(y_rel))
+    pyautogui.moveTo(x_abs, y_abs)
+    pyautogui.mouseUp(x=x_abs, y=y_abs, button="left")
+
+def right_press(x_rel, y_rel):
+    # convert coordinates
+    x_abs, y_abs = abs_coord(float(x_rel), float(y_rel))
+    pyautogui.moveTo(x_abs, y_abs)
+    pyautogui.mouseDown(x=x_abs, y=y_abs, button="right")
+
+def right_release(x_rel, y_rel):
+    # convert coordinates
+    x_abs, y_abs = abs_coord(float(x_rel), float(y_rel))
+    pyautogui.moveTo(x_abs, y_abs)
+    pyautogui.mouseUp(x=x_abs, y=y_abs, button="right")
 
 # return absolute coordinates from relative
 def abs_coord(x_percent, y_percent):
