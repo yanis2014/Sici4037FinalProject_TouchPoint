@@ -82,7 +82,7 @@ def video_sender(conn, done):
 # ---------------------- #
 
 # Runs the server program
-def server_program(port=9999):
+def server_program(port=9999, window=None):
 
     hostname = socket.gethostname()     # get this machine's name
     hostaddr = socket.gethostbyname(hostname)   # get this machine's address
@@ -116,6 +116,9 @@ def server_program(port=9999):
         
         ui_conn, ui_addr = connect(ui_sock)             # inbound user input
         print(f"Input connection from {ui_addr} has been established.")
+
+        # Kill server connection window
+        window.destroy()
         
         # create threads
         video_thread = Thread(target=video_sender, args=(video_conn, done), daemon=True)
