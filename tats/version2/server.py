@@ -201,5 +201,5 @@ def server_program(port=9999, window=None):
         # terminate main program
         sys.exit(0)
 
-if __name__ == "__main__":
-    server_program()
+# if __name__ == "__main__":
+#     server_program()

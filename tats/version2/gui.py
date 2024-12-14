@@ -230,7 +230,6 @@ if __name__ == "__main__":
         command=click_connect
     )
 
-
     # Create server connection header label
     server_connect_header = tk.Label(
         main_frame, 
