@@ -66,6 +66,10 @@ def read_input(client):
                 right_press(x, y)
             elif command == "MUR":
                 right_release(x, y)
+        
+        elif command == "MS":
+            amt = msg.pop(0)
+            scroll(amt)
 
         elif command == "KD":    # Key press
             k = msg.pop(0)
@@ -107,6 +111,10 @@ def right_release(x_rel, y_rel):
     x_abs, y_abs = abs_coord(float(x_rel), float(y_rel))
     pyautogui.moveTo(x_abs, y_abs)
     pyautogui.mouseUp(x=x_abs, y=y_abs, button="right")
+
+def scroll(amt):
+    normalized_amt = int(amt)
+    pyautogui.scroll(normalized_amt)
 
 # return absolute coordinates from relative
 def abs_coord(x_percent, y_percent):

@@ -111,10 +111,8 @@ def mouse_release(event):
     msg = f"{command} {x_rel} {y_rel}"
     send(msg)
 
-
-
-
-    
+def mouse_scroll(event):
+    send(f"MS {event.delta}")
 
 # return absolute coordinates from relative
 def abs_coord(x_percent, y_percent):
@@ -153,22 +151,27 @@ def client_program(hostserver=None, port=9999):
         ui_sock.connect(ui_server)   # sends user input
         print("User input established.")
 
-        # create tk window
+        # Create tk window
         window = tk.Tk()
         window.title("Reciever")
         window.geometry("500x300")
 
-        # create widget to display feed
+        # Create widget to display feed
         label = tk.Label(window)
         label.pack()
 
-        # bind mouseclicks to image
+        # Bind mouseclicks to image
         label.bind("<ButtonPress>", mouse_press)
         label.bind("<ButtonRelease>", mouse_release)
 
         # Bind key press and key release events
         window.bind("<KeyPress>", key_pressed)
         window.bind("<KeyRelease>", key_released)
+
+        # Bind scroll event
+        window.bind("<MouseWheel>", mouse_scroll)
+
+
 
         while True:
             try:
