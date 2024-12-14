@@ -53,31 +53,34 @@ def read_input(client):
     msg = inp.split()
 
     while len(msg) > 0:
-        command = msg.pop(0)
-        if command[0] == "M":     # Left Click
-            x = msg.pop(0)
-            y = msg.pop(0)
+        try:
+            command = msg.pop(0)
+            if command[0] == "M":     # Left Click
+                x = msg.pop(0)
+                y = msg.pop(0)
+                
+                if command == "MDL":
+                    left_press(x, y)
+                elif command == "MUL":
+                    left_release(x, y)
+                elif command == "MDR":
+                    right_press(x, y)
+                elif command == "MUR":
+                    right_release(x, y)
             
-            if command == "MDL":
-                left_press(x, y)
-            elif command == "MUL":
-                left_release(x, y)
-            elif command == "MDR":
-                right_press(x, y)
-            elif command == "MUR":
-                right_release(x, y)
-        
-        elif command == "MS":
-            amt = msg.pop(0)
-            scroll(amt)
+            elif command == "S":
+                amt = msg.pop(0)
+                scroll(amt)
 
-        elif command == "KD":    # Key press
-            k = msg.pop(0)
-            key_press(k)
+            elif command == "KD":    # Key press
+                k = msg.pop(0)
+                key_press(k)
 
-        elif command == "KU":    # Key release
-            k = msg.pop(0)
-            key_release(k)
+            elif command == "KU":    # Key release
+                k = msg.pop(0)
+                key_release(k)
+        except:
+            pass
 
 
 def key_press(key):

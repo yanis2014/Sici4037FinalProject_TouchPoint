@@ -112,7 +112,7 @@ def mouse_release(event):
     send(msg)
 
 def mouse_scroll(event):
-    send(f"MS {event.delta}")
+    send(f"S {event.delta}")
 
 # return absolute coordinates from relative
 def abs_coord(x_percent, y_percent):
